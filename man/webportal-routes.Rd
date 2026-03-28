@@ -2,6 +2,7 @@
 % Please edit documentation in R/api.R
 \name{webportal-routes}
 \alias{webportal-routes}
+\alias{version}
 \alias{get_filters}
 \alias{get_location}
 \alias{get_locations}
@@ -13,11 +14,14 @@
 \alias{get_map_latest_stat}
 \alias{get_map_periodic_stat}
 \alias{export_dataset}
+\alias{export_periodic_stat}
 \alias{export_seasonal_stat}
 \alias{export_time_aligned}
 \alias{export_bulk}
 \title{Web Portal API}
 \usage{
+version(.perform = TRUE, .format = TRUE)
+
 get_filters(.perform = TRUE, .format = TRUE)
 
 get_location(location, ..., .format = TRUE, .perform = TRUE)
@@ -35,9 +39,9 @@ get_latest_stat(
 )
 
 get_latest_stat_values(
-  parameter,
-  statistic,
-  location,
+  parameter = NULL,
+  statistic = NULL,
+  location = NULL,
   ...,
   .format = TRUE,
   .perform = TRUE
@@ -60,6 +64,16 @@ get_map_periodic_stat(
 )
 
 export_dataset(dataset, ..., .perform = TRUE, .format = TRUE)
+
+export_periodic_stat(
+  dataset,
+  statistic,
+  calendar,
+  interval,
+  ...,
+  .perform = TRUE,
+  .format = TRUE
+)
 
 export_seasonal_stat(
   dataset,
@@ -116,6 +130,8 @@ See the web portal API documentation for arguments.
 }
 \section{Functions}{
 \itemize{
+\item \code{version()}: Get version of API
+
 \item \code{get_filters()}: Get filters for map endpoints
 
 \item \code{get_location()}: Get a location
@@ -137,6 +153,8 @@ See the web portal API documentation for arguments.
 \item \code{get_map_periodic_stat()}: Get periodic statistics; return sf object
 
 \item \code{export_dataset()}: Export a data set
+
+\item \code{export_periodic_stat()}: Export a periodic statistic
 
 \item \code{export_seasonal_stat()}: Export seasonal statistics
 
