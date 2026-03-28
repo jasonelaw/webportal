@@ -201,7 +201,7 @@ format_response.geojson <- function(x) {
       coerce_timestamps() |>
       dplyr::bind_cols(.req_id = id)
   }
-  dplyr::bind_rows(map2(x$.response, x$.req_id, fmt_resp))
+  dplyr::bind_rows(purrr::map2(x$.response, x$.req_id, fmt_resp))
 }
 
 #' @export
