@@ -13,6 +13,17 @@
 #' @name webportal-routes
 NULL
 
+
+# Version ------------------------------
+#' @describeIn webportal-routes Get version of API
+#' @export
+version <- function(.perform = TRUE, .format = TRUE) {
+  webportal(
+    .path = "version", .class = "version",
+    .perform = .perform, .format = .format
+  )
+}
+
 ## Filters --------------------------------------------------------------------
 #' @describeIn webportal-routes Get filters for map endpoints
 #' @export
@@ -71,17 +82,12 @@ get_locations <- function(
 #' @export
 get_dataset <- function(dataset, .perform = TRUE, .format = TRUE) {
   rlang::check_required(dataset)
-  .get_dataset <- function(dataset, .perform, .format) {
-    webportal(
-      dataset = dataset,
-      .path = "data-set",
-      .class = "dataset",
-      .perform = .perform,
-      .format = .format
-    )
+  .fun <- function(dataset, .perform, .format) {
+    args <- list(.path = "data-set", .class = "dataset", .perform = FALSE)
+    eval(rlang::call2(webportal, dataset = dataset, !!!args))
   }
 
-  vector_call(dataset = dataset, .f = .get_dataset, .perform = .perform, .format = .format)
+  vector_call(.fun, .perform, .format, dataset = dataset)
 }
 
 ## Latest Statistic Definitions ------------------------------------------------
@@ -112,9 +118,9 @@ get_latest_stat <- function(
 #' @describeIn webportal-routes Get Latest Statistics
 #' @export
 get_latest_stat_values <- function(
-  parameter,
-  statistic,
-  location,
+  parameter = NULL,
+  statistic = NULL,
+  location = NULL,
   ...,
   .format = TRUE,
   .perform = TRUE
@@ -208,7 +214,7 @@ get_map_periodic_stat <- function(
   .perform = TRUE,
   .format = TRUE
 ) {
-  .get_map_periodic_stat <- function(parameter, statistic, interval, date, ...){
+  .fun <- function(parameter, statistic, interval, date, ...) {
     webportal(
       ...,
       .path = "/map/statistics/periodic",
@@ -240,6 +246,7 @@ get_map_periodic_stat <- function(
     interval = interval,
     date = date,
     ...,
+    .f = .fun,
     .perform = .perform,
     .format = .format
   )
@@ -250,31 +257,22 @@ get_map_periodic_stat <- function(
 #' @describeIn webportal-routes Export a data set
 #' @export
 export_dataset <- function(dataset, ..., .perform = TRUE, .format = TRUE) {
-
-    vector_call(
-    dataset = dataset,
-    ...,
-    .f = .export_dataset,
-    .perform = .perform,
-    .format = .format
-  )
-}
-
-.export_dataset <- function(dataset, ..., .perform = TRUE, .format = TRUE) {
-
   rlang::check_required(dataset)
 
-  webportal(
-    dataset = dataset,
-    ...,
-    .path    = c("export", "data-set"),
-    .class   = "export",
-    .perform = .perform,
-    .format  = .format
-  )
+  .fun <- function(dataset, ...) {
+    args <- list(
+      .path    = c("export", "data-set"),
+      .class   = "export",
+      .perform = FALSE
+    )
+    call <- rlang::call2(webportal, dataset = dataset, ..., !!!args)
+    eval(call)
+  }
+
+  vector_call(.fun, .perform, .format, dataset = dataset, ...)
 }
 
-
+#' @describeIn webportal-routes Export a periodic statistic
 #' @export
 export_periodic_stat <- function(
   dataset,
@@ -286,90 +284,84 @@ export_periodic_stat <- function(
   .format = TRUE
 ) {
 
-  vector_call(...,
+  rlang::check_required(dataset)
+  rlang::check_required(statistic)
+  rlang::check_required(calendar)
+  rlang::check_required(interval)
+
+  .fun <- function(dataset, statistic, calendar, interval, ...) {
+    args <- list(
+      .path = c("export", "data-set"), .class = "export", .perform = FALSE
+    )
+
+    cll <- rlang::call2(
+      .fn = webportal, dataset = dataset, statistic = statistic,
+      calendar = calendar, interval = interval, ..., !!!args
+    )
+    eval(cll)
+  }
+
+  vector_call(
+    .fun,
+    .perform,
+    .format,
     dataset = dataset,
     statistic = statistic,
     calendar = calendar,
     interval = interval,
-    .f = .export_periodic_stat,
-    .perform = .perform,
-    .format = .format
+    ...,
   )
 
 }
 
-.export_periodic_stat <- function(
-  dataset,
-  statistic,
-  calendar,
-  interval, ...,
-  .perform = TRUE,
-  .format = TRUE
-) {
 
-  check_required(dataset)
-  check_required(statistic)
-  check_required(calendar)
-  check_required(interval)
-
-  webportal(...,
-    dataset   = dataset,
-    statistic = statistic,
-    calendar  = calendar,
-    interval  = interval,
-    .path    = c("export", "data-set"),
-    .class   = "export",
-    .perform = .perform,
-    .format  = .format
-  )
-}
 
 #' @describeIn webportal-routes Export seasonal statistics
 #' @export
 export_seasonal_stat <- function(
-    dataset,
-    interval,
-    statistic,
-    referenceperiod = referenceperiod,
-    ...,
-    .perform = TRUE,
-    .format = TRUE
-) {
-  vector_call(
-    dataset = dataset,
-    interval = interval,
-    statistic = statistic,
-    calendar = calendar,
-    ...,
-    .f = .export_periodic_stat,
-    .perform = .perform,
-    .format = .format
-  )
-}
-
-.export_seasonal_stat <- function(
-  dataset = NULL,
-  interval = NULL,
-  statistic = NULL,
-  referenceperiod = NULL,
+  dataset,
+  interval,
+  statistic,
+  referenceperiod = referenceperiod,
   ...,
   .perform = TRUE,
   .format = TRUE
 ) {
 
-  webportal(
-    dataset   = dataset,
-    interval  = interval,
+  rlang::check_required(dataset)
+  rlang::check_required(interval)
+  rlang::check_required(statistic)
+  rlang::check_required(referenceperiod)
+
+  .fun <- function(dataset, interval, statistic, referenceperiod, ...) {
+    args <- list(
+      .path = c("export", "seasonal-statistic"), .class = "export",
+      .perform = FALSE
+    )
+
+    call <- rlang::call2(
+      .fn = webportal,
+      dataset = dataset,
+      interval = interval,
+      statistic = statistic,
+      referenceperiod = referenceperiod,
+      ...,
+      !!!args
+    )
+    eval(call)
+  }
+
+  vector_call(
+    .fun,
+    .perform,
+    .format,
+    dataset = dataset,
+    interval = interval,
     statistic = statistic,
     referenceperiod = referenceperiod,
-    ...,
-    .path    = c("export", "seasonal-statistic"),
-    .class   = "export",
-    .perform = .perform,
-    .format  = .format
+    ...
   )
 }
-
 
 check_bulk_args <- function(interval, daterange, call = rlang::caller_env()) {
 

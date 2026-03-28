@@ -114,17 +114,21 @@ unnest_wider_namevalue <- function(x, col, value_col = "value", name_col = "name
 }
 
 
-
 # Web Portal Responses ---------------------------------------------------------
 #' @export
 format_response.wp_response <- function(x, query,  ...) {
-  ret <- tibble(
+  ret <- tibble::tibble(
     response = simd_parse(x$.response, query = query, ...),
     .req_id = x$.req_id
   ) |>
     tidyr::unnest(response) |>
     drop_one_platform()
   ret
+}
+
+#' @export
+format_response.version <- function(x) {
+  unlist(simd_parse(x$.response, query = "/webPortalVersion"))
 }
 
 ## Filters -----------------------------------------
@@ -137,7 +141,7 @@ format_response.filter <- function(x) {
 ## Locations -----------------------------------------
 #' @export
 format_response.wplocation <- function(x, multiple = FALSE) {
-  ret <- tibble(
+  ret <- tibble::tibble(
     location =  simd_parse(x$.response, query = "/location", max_simplify_lvl = 0L),
     .req_id = x$.req_id
   ) |>
@@ -149,7 +153,7 @@ format_response.wplocation <- function(x, multiple = FALSE) {
 
 #' @export
 format_response.wplocations <- function(x, multiple = FALSE) {
-  ret <- tibble(
+  ret <- tibble::tibble(
     location = simd_parse(x$.response, query = "/locations", max_simplify_lvl = 0L),
     .req_id = x$.req_id
   )  |>
@@ -202,23 +206,35 @@ format_response.geojson <- function(x) {
 
 #' @export
 format_response.export <- function(x) {
-  new_tibble(
-    tibble(
-      export = simd_parse(x$.response),
+  pointers <- c(
+    dataset = "/dataset",
+    timeRange = "/timeRange",
+    numPoints = "/numPoints",
+    points = "/points"
+  )
+  ret <- tibble::new_tibble(
+    tibble::tibble(
+      export = simd_parse(x$.response, pointers),
       .req_id = x$.req_id
     )
   ) |>
     tidyr::unnest_wider(export) |>
-    tidyr::unnest_wider(dataset) |>
-    tidyr::unnest_wider(timeRange) |>
-    convert_time(c("startTime", "endTime")) |>
+    tidyr::unnest_wider(dataset)
+  if (any(!is.na(ret$timeRange))) {
+    ret <- ret |>
+      unnest_wider(timeRange) |>
+      convert_time(c("startTime", "endTime"))
+  }
+  ret <- ret |>
     dplyr::mutate(
-      points = map(
+      points = map_if(
         points,
+        \(x) !is.null(x),
         \(x) tibble::as_tibble(x) |>
           convert_time(c("timestamp", "eventTimestamp"))
       )
-    ) |> unnest(points)
+    ) #|> tidyr::unnest(points)
+  ret
 }
 
 
@@ -248,7 +264,7 @@ format_response.aligned <- function(x) {
     rows = "/rows"
   )
   ret <- simd_parse(x$response, query = pointer)
-  ret <- tibble(aligned = ret, .req_id = x$.req_id) |>
+  ret <- tibble::tibble(aligned = ret, .req_id = x$.req_id) |>
     tidyr::unnest_wider(aligned) |>
     convert_time(c("startTime", "endTime"))
   rows <- purrr::list_rbind(ret$rows) |>

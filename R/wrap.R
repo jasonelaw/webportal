@@ -23,7 +23,7 @@ webportal <- function(
     .multi = "explode"
 ) {
 
-  verbose <- getOption("raquarius.verbose")
+  verbose <- getOption("webportal.verbose")
 
   params <- rlang::list2(...)
 
@@ -51,9 +51,8 @@ webportal <- function(
 
   ret <- new_wp_request(req, class = .class)
 
-
   if (.perform) {
-    ret <- req_perform_wp(ret)
+    ret <- perform_wp_request(ret)
     if (.format) {
       ret <- format_response(ret)
     }
@@ -62,9 +61,14 @@ webportal <- function(
   ret
 }
 
-new_wp_request <- function(x, class) {
+new_wp_request <- function(x, class = NULL) {
+  if (rlang::is_missing(x)) {
+    x <- httr2::request(wp_get_url())
+  }
   stopifnot(
-    "`x` must be an `httr2_request`" = inherits(x, "httr2_request")
+    "`x` must be an `httr2_request`" = inherits(x, "httr2_request"),
+    "`class` must be a scalar character or `NULL`" =
+      rlang::is_scalar_character(class) || rlang::is_null(class)
   )
   tibble::new_tibble(
     tibble::tibble_row(.req_id = rlang::hash(x), .request = list(x)),
@@ -73,57 +77,47 @@ new_wp_request <- function(x, class) {
 }
 
 #' @export
-print.wp_request <- function(x, max = 5) {
+print.wp_request <- function(x, ...) {
   NextMethod()
 }
 
-new_wp_response <- function(x, df = tibble(), class) {
-
-  is_response <- inherits(x, "httr2_response")
-  x <- if(is_response) list(x) else x
-
+new_wp_response <- function(x, class = NULL) {
+  if(rlang::is_missing(x)) {
+    x <- tibble::tibble(
+      .req_id := character(),
+      .request = list(NULL),
+      .response = list(NULL)
+    )
+  }
   stopifnot(
-    "x must be an `httr2_response` object or a list of responses" =
-      is_list_of_responses(x)
+    tibble::is_tibble(x),
+    tibble::has_name(x, ".req_id"),
+    tibble::has_name(x, ".request"),
+    tibble::has_name(x, ".response")
   )
 
-  tibble::new_tibble(
-    dplyr::reframe(df, response = x),
-    class = c(class, "wp_response")
+  tibble::new_tibble(x, class = c(class, "wp_response"))
+}
+
+validate_wp_response <- function(x) {
+  stopifnot(
+    "`x` must be a tibble" = tibble::is_tibble(x),
+    "`x` must have a field `.req_id`" = tibble::has_name(x, ".req_id"),
+    "`x` must have a field `.request`" = tibble::has_name(x, ".request"),
+    "`x` must have a field `.response`" = tibble::has_name(x, ".response"),
+    "`x$.request` must be a list of `httr2_request` objects"  =
+      purrr::map_lgl(x$.request, \(x) inherits(x, "httr2_request")),
+    "`x$.response` must be a list of `httr2_response` objects" =
+      purrr::map_lgl(x$.response, \(x) inherits(x, "httr2_response"))
   )
+  x
 }
 
 resp_status <- function(x) {
   map_int(x$response, httr2::resp_status)
 }
 
-req_perform_wp2 <- function(x, .format, max_active = 10, on_error = "stop") {
-
-  if (inherits(x, "httr2_request")) {
-    x <- list(x)
-  }
-
-  stopifnot(
-    "`x` must be an httr2_request or a list of them" = is_list_of_requests(x)
-  )
-
-  cls <- class(x[[1]])[1]
-
-  if (identical(length(x), 1L)) {
-    ret <- httr2::req_perform(x[[1]])
-  } else if (is_list_of_requests(x)) {
-    ret <- httr2::req_perform_parallel(
-      x,
-      on_error = on_error,
-      max_active = max_active,
-      progress = "Performing requests"
-    )
-  }
-
-  new_wp_response(ret, class = cls)
-}
-
-req_perform_wp <- function(x, ...) {
+perform_wp_request <- function(x, ...) {
   cls <- class(x)[1]
   n <- nrow(x)
   if (identical(n, 1L)){
@@ -135,5 +129,6 @@ req_perform_wp <- function(x, ...) {
       ...
     )
   }
-  new_tibble(unclass(x), class = c(cls, "wp_response"))
+
+  new_wp_response(x, class = cls)
 }

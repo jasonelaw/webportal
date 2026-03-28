@@ -32,19 +32,18 @@ make_get_env <- function(keyname, signal_error = TRUE) {
   }
 }
 
-vector_call <- function(..., .f, .perform, .format) {
+vector_call <- function(.f, .perform, .format, ...) {
   args <- tibble::as_tibble(rlang::list2(...))
   args <- dplyr::bind_cols(
-    purrr::list_rbind(purrr::pmap(args, .f = .f, .perform = F)),
+    purrr::list_rbind(purrr::pmap(args, .f = .f)),
     args
   ) |>
     dplyr::relocate(dplyr::starts_with("."), .after = dplyr::everything())
   if (.perform) {
-    args <- req_perform_wp(args)
+    args <- perform_wp_request(args)
+    if (.format) {
+      args <- format_response(args)
+    }
   }
-  if (.format) {
-    format_response(args)
-  } else {
-    args
-  }
+  args
 }
