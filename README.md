@@ -50,3 +50,17 @@ field visits can be retrieved using `get_dataset`:
 ``` r
 get_dataset("Parameter.Label@Location")
 ```
+
+Several entities can be retrieved as geojson objects. webportal converts
+these to [`sf`](https://r-spatial.github.io/sf/) objects. Functions are
+available to retrieve locations, datasets (by parameter), latest
+statistics (by parameter and statistic), and periodic statistics (by
+parameter, statistic, interval, and date):
+
+``` r
+get_map_locations()
+
+get_map_datasets(parameter = "Precip Increm")
+
+get_map_latest_stat(parameter = "Precip Increm", statistic = "CALENDAR_1DAY")
+```
