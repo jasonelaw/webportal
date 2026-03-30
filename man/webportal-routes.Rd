@@ -87,8 +87,8 @@ export_seasonal_stat(
 
 export_time_aligned(
   datasets,
-  starttime,
-  endtime,
+  starttime = NULL,
+  endtime = NULL,
   daterange = NULL,
   interval = "PointsAsRecorded",
   step = 1,

@@ -10,7 +10,9 @@
 The webportal package provides a wrapper for the [Aquatic
 Informatics](https://aquaticinformatics.com/) [Web Portal
 API](https://github.com/AquaticInformatics/examples?tab=readme-ov-file).
-The
+Accessing the API requires that you have an account with privileges to
+access the API for deployed Web Portal. Speak to an administrator for
+the Web Portal server that you’re interested in if you don’t have these.
 
 ## Installation
 
@@ -42,7 +44,7 @@ the system:
 ``` r
 library(webportal)
 get_locations()
-#> # A tibble: 328 × 23
+#> # A tibble: 328 × 22
 #>    locationId id    name     description folder type  elevation elevationUnit_id
 #>         <int> <chr> <chr>    <chr>       <chr>  <chr>     <dbl> <chr>           
 #>  1          2 VNB   N Vanco… ""          All L… Surf…         0 m               
@@ -56,11 +58,11 @@ get_locations()
 #>  9         16 P0250 Balch C… ""          All L… Surf…         0 m               
 #> 10         19 P0272 Johnson… ""          All L… Surf…         0 m               
 #> # ℹ 318 more rows
-#> # ℹ 15 more variables: elevationUnit_symbol <chr>,
+#> # ℹ 14 more variables: elevationUnit_symbol <chr>,
 #> #   elevationUnit_singularName <chr>, elevationUnit_pluralName <chr>,
 #> #   latitude <dbl>, longitude <dbl>, srid <int>, easting <dbl>, northing <dbl>,
 #> #   wkid <int>, utcOffset <int>, lastUpdated <chr>, active <lgl>, tags <list>,
-#> #   onePlatformId <lgl>, .req_id <chr>
+#> #   .req_id <chr>
 ```
 
 A `dataset` which is either a timeseries or readings collected during

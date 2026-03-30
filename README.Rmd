@@ -21,11 +21,14 @@ knitr::opts_chunk$set(
 The webportal package provides a wrapper for the 
 [Aquatic Informatics](https://aquaticinformatics.com/) 
 [Web Portal API](https://github.com/AquaticInformatics/examples?tab=readme-ov-file).
-The 
+Accessing the API requires that you have an account with privileges to access 
+the API for deployed Web Portal. Speak to an administrator for
+the Web Portal server that you're interested in if you don't have these.
 
 ## Installation
 
-You can install the development version of webportal from [GitHub](https://github.com/) with:
+You can install the development version of webportal from 
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
