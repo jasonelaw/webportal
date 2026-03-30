@@ -121,7 +121,7 @@ perform_wp_request <- function(x, ...) {
   webportal.parallel <- getOption("webportal.parallel")
   stopifnot(
     "The `webportal.parallel` option must be logical" =
-      is.logical(webportal_parallel)
+      is.logical(webportal.parallel)
   )
   cls <- class(x)[1]
   n <- nrow(x)
