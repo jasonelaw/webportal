@@ -52,10 +52,10 @@ get_dataset("Parameter.Label@Location")
 ```
 
 Several entities can be retrieved as geojson objects. webportal converts
-these to [`sf`](https://r-spatial.github.io/sf/) objects. Functions are
-available to retrieve locations, datasets (by parameter), latest
-statistics (by parameter and statistic), and periodic statistics (by
-parameter, statistic, interval, and date):
+these to [`sf`](https://r-spatial.github.io/sf/) objects automatically.
+Functions are available to retrieve locations, datasets (by parameter),
+latest statistics (by parameter and statistic), and periodic statistics
+(by parameter, statistic, interval, and date):
 
 ``` r
 get_map_locations()
@@ -63,4 +63,80 @@ get_map_locations()
 get_map_datasets(parameter = "Precip Increm")
 
 get_map_latest_stat(parameter = "Precip Increm", statistic = "CALENDAR_1DAY")
+```
+
+Datasets, periodic statistics, and seasonal statistics can be retrieved
+using the export endpoint via `export_dataset`, `export_periodic_stat`,
+and `export_seasonal_stat`. These functions are all vectorized over
+their arguments. Vectors of length 1 are recycled via R recycling rules,
+but otherwise the length of arguments must match. So, for example, the
+following is possible:
+
+``` r
+library(lubridate)
+datasets <- c(
+  "Precip Increm.Primary@Location1", 
+  "Precip Increm.Primary@Location2"
+)
+export_dataset(
+  dataset = datasets, 
+  startTime = "2026-01-01", 
+  endTime = "2026-03-01"
+)
+```
+
+The vectorized functions above issue a single request for each dataset
+requested. These requests will be issued in parallel if the option
+`webportal.parallel` is set to `TRUE`:
+
+``` r
+options("webportal.parallel" = TRUE)
+export_dataset(
+  dataset = datasets, 
+  startTime = "2026-01-01", 
+  endTime = "2026-03-01"
+)
+```
+
+Parallel requests may be faster.
+
+The Web Portal API also has two endpoints for “bulk” exports where
+multiple datasets can be requested with the same API call. The
+`export_bulk` and `export_time_aligned` functions use these endpoints.
+They differ in that the latter function returns a “time-aligned” result
+where each time series subsequent to the first is interpolated to the
+timesteps of the first time series. This allows a user to easily create
+datasets sampled at the same time interval when they are measured using
+different intervals. For example, this will linearly interpolate the
+hourly precipitation totals in the second time series to the 5 minute
+measurements present in the first:
+
+``` r
+datasets <- c(
+  "Precip Increm.Primary@Location1", 
+  "Precip Increm.1Hour@Location1"
+)
+export_time_aligned(
+  dataset = datasets, 
+  startTime = "2026-01-01", 
+  endTime = "2026-03-01"
+)
+```
+
+The `export_bulk` call here is equivalent to the example above. The only
+difference being that the example below consolidates all of the
+requested data into a single API call, whereas the example above will
+issue a single request for each dataset (and may be performed in
+parallel).
+
+``` r
+datasets <- c(
+  "Precip Increm.Primary@Location1", 
+  "Precip Increm.1Hour@Location1"
+)
+export_bulk(
+  dataset = datasets, 
+  startTime = "2026-01-01", 
+  endTime = "2026-03-01"
+)
 ```
