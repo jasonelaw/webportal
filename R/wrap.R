@@ -118,16 +118,21 @@ resp_status <- function(x) {
 }
 
 perform_wp_request <- function(x, ...) {
+  webportal.parallel <- getOption("webportal.parallel")
+  stopifnot(
+    "The `webportal.parallel` option must be logical" =
+      is.logical(webportal_parallel)
+  )
   cls <- class(x)[1]
   n <- nrow(x)
-  if (identical(n, 1L)){
-    x$.response <- httr2::req_perform_sequential(x$.request)
-  } else {
+  if (n > 1L && webportal.parallel) {
     x$.response <- httr2::req_perform_parallel(
       x$.request,
       progress = "Completing requests to Web Portal",
       ...
     )
+  } else {
+    x$.response <- httr2::req_perform_sequential(x$.request)
   }
 
   new_wp_response(x, class = cls)

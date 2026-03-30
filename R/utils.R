@@ -5,7 +5,8 @@
 rlang::on_load({
   options(
     "webportal.verbose" = FALSE,
-    "webportal.rename"  = FALSE
+    "webportal.rename"  = FALSE,
+    "webportal.parallel" = FALSE
   )
 })
 
