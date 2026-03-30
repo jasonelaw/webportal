@@ -36,7 +36,7 @@ pak::pak("jasonelaw/webportal")
 
 The webportal package can be used to most endpoints. In order to use the package,
 you'll have to make your credentials available via environment variables. I
-recommend setting the environmental variables by editiong your 
+recommend setting the environmental variables by editing your 
 [`.Renviron`](https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html) 
 file to include:
 
@@ -50,7 +50,7 @@ Afterwards, you should be able to use the package without thinking about
 credentials. For example, to retrieve a list of all  locations stored in the
 system:
 
-```{r get_locations, eval=FALSE}
+```{r get_locations, eval=TRUE}
 library(webportal)
 get_locations()
 ```

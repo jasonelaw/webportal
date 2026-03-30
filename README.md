@@ -26,7 +26,7 @@ pak::pak("jasonelaw/webportal")
 
 The webportal package can be used to most endpoints. In order to use the
 package, you’ll have to make your credentials available via environment
-variables. I recommend setting the environmental variables by editiong
+variables. I recommend setting the environmental variables by editing
 your
 [`.Renviron`](https://docs.posit.co/ide/user/ide/guide/environments/r/managing-r.html)
 file to include:
@@ -42,6 +42,25 @@ the system:
 ``` r
 library(webportal)
 get_locations()
+#> # A tibble: 328 × 23
+#>    locationId id    name     description folder type  elevation elevationUnit_id
+#>         <int> <chr> <chr>    <chr>       <chr>  <chr>     <dbl> <chr>           
+#>  1          2 VNB   N Vanco… ""          All L… Surf…         0 m               
+#>  2          3 158   NE 158t… ""          All L… Surf…         0 m               
+#>  3          4 21B   NE 21st… ""          All L… Surf…         0 m               
+#>  4          5 92B   NE 92nd… ""          All L… Surf…         0 m               
+#>  5          8 P0016 Kelley … ""          All L… Surf…         0 m               
+#>  6         11 P0208 Tryon C… ""          All L… Surf…         0 m               
+#>  7         13 P0080 Upper C… ""          All L… Surf…         0 m               
+#>  8         14 P0060 Veteran… ""          All L… Surf…         0 m               
+#>  9         16 P0250 Balch C… ""          All L… Surf…         0 m               
+#> 10         19 P0272 Johnson… ""          All L… Surf…         0 m               
+#> # ℹ 318 more rows
+#> # ℹ 15 more variables: elevationUnit_symbol <chr>,
+#> #   elevationUnit_singularName <chr>, elevationUnit_pluralName <chr>,
+#> #   latitude <dbl>, longitude <dbl>, srid <int>, easting <dbl>, northing <dbl>,
+#> #   wkid <int>, utcOffset <int>, lastUpdated <chr>, active <lgl>, tags <list>,
+#> #   onePlatformId <lgl>, .req_id <chr>
 ```
 
 A `dataset` which is either a timeseries or readings collected during
