@@ -1,11 +1,12 @@
-#' @export
-format_response <- function(x, ...) {
-  UseMethod("format_response")
-}
 
+
+# Formatting helpers ----------------------------------------------------------
 drop_status <- function(x) {
   if (rlang::has_name(x, "ResponseStatus")) {
-    x[c("ResponseStatus")] <- NULL
+    x["ResponseStatus"] <- NULL
+  }
+  if (rlang::has_name(x, "disclaimers")) {
+    x["disclaimers"] <- NULL
   }
   x
 }
@@ -35,47 +36,6 @@ rename_wp <- function(x) {
 
 drop_one_platform <- function(x) {
   dplyr::select(x, -dplyr::contains("OnePlatform"))
-}
-#' @export
-simd_parse <- function(x, ...) {
-  UseMethod("simd_parse")
-}
-
-#' @export
-simd_parse.httr2_response <- function(x, ...) {
-  RcppSimdJson::fparse(httr2::resp_body_raw(x), ...)
-}
-
-#' @export
-simd_parse.list <- function(x, ...) {
-  is_httr_resp <- all(purrr:::map_lgl(x, \(x) inherits(x, "httr2_response")))
-  if (is_httr_resp) {
-    x <- purrr:::map(x, httr2::resp_body_raw)
-  }
-  is_raw <- all(purrr:::map_lgl(x, rlang::is_raw))
-  if (is_raw) {
-    x <- RcppSimdJson::fparse(x, ...)
-  } else {
-    rlang::abort("`x` must be a list of httr2_response objects or raw vectors")
-  }
-  x
-}
-
-filter_null <- function(x) {
-  if (length(x) == 0 || !is.list(x))
-    return(x)
-  x[!unlist(lapply(x, is.null))]
-}
-
-#' Helper function for simplifying common pattern in AQTS json responses
-format_row <- function(x) {
-  f <- function(x) {
-    !rlang::is_atomic(x)
-  }
-  ret <- filter_null(x)
-  ret <- map_if(ret, f, \(x) list(x))
-  ret <- tibble::as_tibble_row(ret)
-  ret
 }
 
 parse_timestamp <- function(x) {
@@ -116,6 +76,11 @@ unnest_wider_namevalue <- function(x, col, value_col = "value", name_col = "name
 
 # Web Portal Responses ---------------------------------------------------------
 #' @export
+format_response <- function(x, ...) {
+  UseMethod("format_response")
+}
+
+#' @export
 format_response.wp_response <- function(x, query,  ...) {
   ret <- tibble::tibble(
     response = simd_parse(x$.response, query = query, ...),
@@ -147,6 +112,7 @@ format_response.wplocation <- function(x, multiple = FALSE) {
   ) |>
     tidyr::unnest_wider(location) |>
     tidyr::unnest_wider(elevationUnit, names_sep = "_") |>
+    drop_one_platform() |>
     unnest_wider_namevalue(extendedAttributes, "value", "name")
   type.convert(ret, as.is = TRUE)
 }
@@ -158,6 +124,7 @@ format_response.wplocations <- function(x, multiple = FALSE) {
     .req_id = x$.req_id
   )  |>
     tidyr::unnest(location) |>
+    drop_one_platform() |>
     tidyr::unnest_wider(elevationUnit, names_sep = "_")|>
     unnest_wider_namevalue(extendedAttributes, "value", "name")
   type.convert(ret, as.is = TRUE)
@@ -222,18 +189,18 @@ format_response.export <- function(x) {
     tidyr::unnest_wider(dataset)
   if (any(!is.na(ret$timeRange))) {
     ret <- ret |>
-      unnest_wider(timeRange) |>
+      tidyr::unnest_wider(timeRange) |>
       convert_time(c("startTime", "endTime"))
   }
   ret <- ret |>
     dplyr::mutate(
-      points = map_if(
+      points = purrr::map_if(
         points,
         \(x) !is.null(x),
         \(x) tibble::as_tibble(x) |>
           convert_time(c("timestamp", "eventTimestamp"))
       )
-    ) #|> tidyr::unnest(points)
+    )
   ret
 }
 
@@ -263,7 +230,7 @@ format_response.aligned <- function(x) {
     endTime = "/timeRange/endTime",
     rows = "/rows"
   )
-  ret <- simd_parse(x$response, query = pointer)
+  ret <- simd_parse(x$.response, query = pointer)
   ret <- tibble::tibble(aligned = ret, .req_id = x$.req_id) |>
     tidyr::unnest_wider(aligned) |>
     convert_time(c("startTime", "endTime"))
@@ -276,7 +243,12 @@ format_response.aligned <- function(x) {
       y = rows,
       by = dplyr::join_by(identifier == dataset)
     ) |>
-    nest(points = !one_of(c("identifier", "parameter", "label", "unit", "locationIdentifier", "startTime", "endTime")))
+    tidyr::nest(
+      points = !one_of(c(
+        "identifier", "parameter", "label", "unit", "locationIdentifier",
+        "startTime", "endTime"
+      ))
+    )
 }
 
 

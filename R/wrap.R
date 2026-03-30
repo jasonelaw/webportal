@@ -34,7 +34,8 @@ webportal <- function(
     httr2::req_url_query(!!!params, .multi = .multi) |>
     httr2::req_headers(
       `Accept-Encoding` = "gzip"
-    )
+    ) |>
+    httr2::req_error(body = wp_req_error)
 
   if (!is.null(.template)) {
     req <- req |>
@@ -76,11 +77,6 @@ new_wp_request <- function(x, class = NULL) {
   )
 }
 
-#' @export
-print.wp_request <- function(x, ...) {
-  NextMethod()
-}
-
 new_wp_response <- function(x, class = NULL) {
   if(rlang::is_missing(x)) {
     x <- tibble::tibble(
@@ -113,10 +109,6 @@ validate_wp_response <- function(x) {
   x
 }
 
-resp_status <- function(x) {
-  map_int(x$response, httr2::resp_status)
-}
-
 perform_wp_request <- function(x, ...) {
   webportal.parallel <- getOption("webportal.parallel")
   stopifnot(
@@ -135,5 +127,22 @@ perform_wp_request <- function(x, ...) {
     x$.response <- httr2::req_perform_sequential(x$.request)
   }
 
-  new_wp_response(x, class = cls)
+  ret <- new_wp_response(x, class = cls)
+}
+
+#' @export
+print.wp_request <- function(x, ...) {
+  NextMethod()
+}
+resp_status <- function(x) {
+  purrr::map_int(x$.response, httr2::resp_status)
+}
+
+check_status <- function(x) {
+  status <- resp_status(x)
+}
+
+wp_req_error <- function(x) {
+  status <- httr2::resp_body_json(x)$responseStatus
+  paste0("errorCode: ", status$erorCode, " errorMessage: ", status$message, status$meta)
 }

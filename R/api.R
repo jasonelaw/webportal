@@ -391,8 +391,8 @@ check_bulk_args <- function(interval, daterange, call = rlang::caller_env()) {
 #' @export
 export_time_aligned <- function(
   datasets,
-  starttime,
-  endtime,
+  starttime = NULL,
+  endtime = NULL,
   daterange = NULL,
   interval = "PointsAsRecorded",
   step = 1,
@@ -406,7 +406,7 @@ export_time_aligned <- function(
 
   check_bulk_args(interval, daterange)
 
-  args <- list2(...,
+  args <- rlang::list2(...,
     datasets = datasets,
     starttime = starttime,
     endtime = endtime,
