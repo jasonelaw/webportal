@@ -19,19 +19,44 @@ coerce_timestamps <- function(x) {
     )
 }
 
-rename_wp <- function(x) {
+# rename_wp <- function(x) {
+#   UseMethod("rename_wp")
+# }
+#
+# rename_wp.sf <- function(x) {
+#
+# }
+rename_nested <- function(x) {
+  rename_list <- function(x) {
+    if (is.null(x)) {
+      x
+    } else if (is.data.frame(x)) {
+      dplyr::rename_with(x, snakecase::to_snake_case)
+    } else if (is.list(x)) {
+      setNames(x, snakecase::to_snake_case(names(x)))
+    } else {
+      x
+    }
+  }
   x |>
-    dplyr::rename_with(snakecase::to_snake_case) |>
     dplyr::mutate(
       dplyr::across(
         dplyr::where(is.list),
-        \(x) setNames(x, snakecase::to_snake_case(names(x)))
-      ),
-      dplyr::across(
-        dplyr::where(is.data.frame),
-        \(x) dplyr::rename_with(x)
+        \(x) map(x, rename_list)
       )
     )
+}
+rename_wp <- function(x) {
+  rename <- getOption("webportal.rename")
+  is_sf <- inherits(x, "sf")
+  fun <- if (is_sf) sf:::rename_with.sf else dplyr::rename_with
+
+  if (rename) {
+    x <- x |>
+      fun(snakecase::to_snake_case) |>
+      rename_nested()
+  }
+  x
 }
 
 drop_one_platform <- function(x) {
@@ -99,7 +124,8 @@ format_response.version <- function(x) {
 ## Filters -----------------------------------------
 #' @export
 format_response.filter <- function(x) {
-  format_response.wp_response(x, "/filters")
+  format_response.wp_response(x, "/filters") |>
+    rename_wp()
 }
 
 
@@ -113,7 +139,8 @@ format_response.wplocation <- function(x, multiple = FALSE) {
     tidyr::unnest_wider(location) |>
     tidyr::unnest_wider(elevationUnit, names_sep = "_") |>
     drop_one_platform() |>
-    unnest_wider_namevalue(extendedAttributes, "value", "name")
+    unnest_wider_namevalue(extendedAttributes, "value", "name") |>
+    rename_wp()
   type.convert(ret, as.is = TRUE)
 }
 
@@ -126,20 +153,23 @@ format_response.wplocations <- function(x, multiple = FALSE) {
     tidyr::unnest(location) |>
     drop_one_platform() |>
     tidyr::unnest_wider(elevationUnit, names_sep = "_")|>
-    unnest_wider_namevalue(extendedAttributes, "value", "name")
+    unnest_wider_namevalue(extendedAttributes, "value", "name") |>
+    rename_wp()
   type.convert(ret, as.is = TRUE)
 }
 
 ## Dataset -----------------------------------------
 #' @export
 format_response.dataset <- function(x) {
-  format_response.wp_response(x, query = "/datasets")
+  format_response.wp_response(x, query = "/datasets") |>
+    rename_wp()
 }
 
 #' @export
 format_response.lateststatdef <- function(x) {
   format_response.wp_response(x, query = "/latestStatistics") |>
-    tidyr::unnest_wider(unit, names_sep = "_")
+    tidyr::unnest_wider(unit, names_sep = "_") |>
+    rename_wp()
 }
 
 #' @export
@@ -154,7 +184,8 @@ format_response.lateststatistic <- function(x) {
       parameter = "parameter",
       unit = c("unit", "symbol")
     ) |>
-    dplyr::select(-statistic)
+    dplyr::select(-statistic) |>
+    rename_wp()
 }
 
 #'@export
@@ -168,7 +199,13 @@ format_response.geojson <- function(x) {
       coerce_timestamps() |>
       dplyr::bind_cols(.req_id = id)
   }
-  dplyr::bind_rows(purrr::map2(x$.response, x$.req_id, fmt_resp))
+  ret <- dplyr::bind_rows(purrr::map2(x$.response, x$.req_id, fmt_resp))
+  rename <- getOption("webportal.rename")
+  if (rename) {
+    ret <- ret |>
+      sf:::rename_with.sf(snakecase::to_snake_case)
+  }
+  ret
 }
 
 #' @export
@@ -200,7 +237,8 @@ format_response.export <- function(x) {
         \(x) tibble::as_tibble(x) |>
           convert_time(c("timestamp", "eventTimestamp"))
       )
-    )
+    ) |>
+    rename_wp()
   ret
 }
 
@@ -218,7 +256,8 @@ format_response.bulk <- function(x) {
         \(x) convert_time(x, "timestamp")
       )
     ) |>
-    convert_time(c("startTime", "endTime"))
+    convert_time(c("startTime", "endTime")) |>
+    rename_wp()
   ret
 }
 
@@ -248,7 +287,8 @@ format_response.aligned <- function(x) {
         "identifier", "parameter", "label", "unit", "locationIdentifier",
         "startTime", "endTime"
       ))
-    )
+    ) |>
+    rename_wp()
 }
 
 

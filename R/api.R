@@ -1,4 +1,3 @@
-
 # Web Portal Routes ------------------------------------------------------------
 #'Web Portal API
 #'
@@ -466,4 +465,18 @@ export_bulk <- function(
     .format = .format
   )
   ret
+}
+
+#'Returns an object suitable for the Datasets argument of the bulk export
+#'endpoints: `export_bulk` and `export_time_aligned`.
+#'@export
+Datasets <- function(Identifier, Calculation = NULL, Unit = NULL){
+  if (!is.null(Calculation)){
+    choices <- c(
+      "Instantaneous", "Maximum", "Minimum", "Aggregate",
+      "Integrate", "Differentiate"
+    )
+    stopifnot(Calculation %in% choices)
+  }
+  tibble(Identifier, Calculation, Unit)
 }
