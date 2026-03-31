@@ -161,3 +161,19 @@ export_bulk(
   endTime = "2026-03-01"
 )
 ```
+
+Finally, there are several options that can be set:
+
+    options(
+    webportal.verbose = FALSE,
+    webportal.rename = FALSE,
+    webportal.parallel = FALSE
+    )
+
+All three are `FALSE` by default. The `verbose` option will print
+detailed information about each request issued. The `rename` option will
+rename formatted output to snake case. I’ve tried to make sure nested
+output is also renamed but please create an issue if you notice
+inconsistent naming. Finally, for functions that are vectorized and
+issue several requests for each vector argument, the `parallel` option
+will perform requests in parallel.
