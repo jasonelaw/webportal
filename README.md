@@ -133,10 +133,10 @@ hourly precipitation totals in the second time series to the 5 minute
 measurements present in the first:
 
 ``` r
-datasets <- c(
+datasets <- Datasets(Identifier = c(
   "Precip Increm.Primary@Location1", 
   "Precip Increm.1Hour@Location1"
-)
+))
 export_time_aligned(
   dataset = datasets, 
   startTime = "2026-01-01", 
@@ -151,10 +151,10 @@ issue a single request for each dataset (and may be performed in
 parallel).
 
 ``` r
-datasets <- c(
+datasets <- Datasets(Identifier = c(
   "Precip Increm.Primary@Location1", 
   "Precip Increm.1Hour@Location1"
-)
+))
 export_bulk(
   dataset = datasets, 
   startTime = "2026-01-01", 
