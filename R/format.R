@@ -250,7 +250,7 @@ format_response.bulk <- function(x) {
     tidyr::unnest_wider(dataset) |>
     tidyr::unnest_wider(timeRange) |>
     dplyr::mutate(
-      points = map_if(
+      points = purrr::map_if(
         points,
         \(x) !is.null(x),
         \(x) convert_time(x, "timestamp")

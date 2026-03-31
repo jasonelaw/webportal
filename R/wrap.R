@@ -29,7 +29,7 @@ webportal <- function(
 
   req <- httr2::request(.url) |>
     httr2::req_url_path_append("api", "v1", .path) |>
-    httr2::req_user_agent("https://github.com/jasonelaw/raquarius") |>
+    httr2::req_user_agent("https://github.com/jasonelaw/webportal") |>
     httr2::req_auth_basic(.username, .password) |>
     httr2::req_url_query(!!!params, .multi = .multi) |>
     httr2::req_headers(
@@ -127,7 +127,7 @@ perform_wp_request <- function(x, ...) {
     x$.response <- httr2::req_perform_sequential(x$.request)
   }
 
-  ret <- new_wp_response(x, class = cls)
+  new_wp_response(x, class = cls)
 }
 
 #' @export

@@ -445,7 +445,7 @@ export_bulk <- function(
 
   check_bulk_args(interval, daterange)
 
-  args <- list2(...,
+  args <- rlang::list2(...,
     datasets  = datasets,
     starttime = starttime,
     endtime = endtime,
@@ -478,5 +478,5 @@ Datasets <- function(Identifier, Calculation = NULL, Unit = NULL){
     )
     stopifnot(Calculation %in% choices)
   }
-  tibble(Identifier, Calculation, Unit)
+  tibble::tibble(Identifier, Calculation, Unit)
 }
