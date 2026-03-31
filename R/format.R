@@ -42,7 +42,7 @@ rename_nested <- function(x) {
     dplyr::mutate(
       dplyr::across(
         dplyr::where(is.list),
-        \(x) map(x, rename_list)
+        \(x) purrr::map(x, rename_list)
       )
     )
 }
