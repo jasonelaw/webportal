@@ -84,16 +84,14 @@ unnest_wider_namevalue <- function(x, col, value_col = "value", name_col = "name
   f <- function(x, name_col, value_col){
     has_value <- rlang::has_name(x, value_col)
     if(has_value){
-      tidyr::deframe(x[, c(name_col, value_col)])
+      tibble::deframe(x[, c(name_col, value_col)])
     } else {
       list(NULL)
     }
   }
   x |>
     dplyr::mutate(
-      "{{ col }}" := f({{ col }},
-      name_col = name_col,
-      value_col = value_col)
+      "{{ col }}" := purrr::map({{ col }}, \(x) f(x, name_col = name_col, value_col = value_col))
     ) |>
     tidyr::unnest_wider(col = {{ col }})
 }
