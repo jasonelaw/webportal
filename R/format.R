@@ -85,7 +85,7 @@ unnest_wider_namevalue <- function(x, col, value_col = "value", name_col = "name
     has_value <- rlang::has_name(x, value_col)
     if(has_value){
       ret <- tibble::deframe(x[, c(name_col, value_col)])
-      as.character(ret)
+      setNames(as.character(ret), names(ret))
     } else {
       list(NULL)
     }
