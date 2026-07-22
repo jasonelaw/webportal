@@ -447,16 +447,16 @@ export_bulk <- function(
 
   args <- rlang::list2(...,
     datasets  = datasets,
-    starttime = starttime,
-    endtime = endtime,
-    daterange = daterange,
+    starttime = rlang::maybe_missing(starttime),
+    endtime = rlang::maybe_missing(endtime),
+    daterange = rlang::maybe_missing(daterange),
     interval  = interval,
     step      = step,
     includeGradeCodes     = includeGradeCodes,
     includeQualifers      = includeQualifers,
     IncludeApprovalLevels = includeApprovalLevels
   )
-
+  args <- Filter(Negate(rlang::is_missing), args)
   ret <- webportal(
     .path = c("export", "bulk"),
     .body = args,
